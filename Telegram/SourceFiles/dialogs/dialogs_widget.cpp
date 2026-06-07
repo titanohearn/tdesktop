@@ -3996,7 +3996,7 @@ void Widget::updateControlsGeometry() {
 	const auto expandedStoriesTop = filterAreaTop + filterAreaHeight;
 	const auto storiesHeight = 2 * st::dialogsStories.photoTop
 		+ st::dialogsStories.photo;
-	const auto added = (st::dialogsFilter.heightMin - storiesHeight) / 2;
+	// const auto added = (st::dialogsFilter.heightMin - storiesHeight) / 2;
 	// if (_stories) {
 	// 	_stories->setLayoutConstraints(
 	// 		{ filterLeft + filterWidth, filterTop + added },
