@@ -367,12 +367,12 @@ Widget::Widget(
 	object_ptr<Ui::IconButton>(this, st::dialogsLock))
 , _scroll(this)
 , _scrollToTop(_scroll, st::dialogsToUp)
-, _stories((_layout != Layout::Child)
-	? std::make_unique<Stories::List>(
-		this,
-		st::dialogsStoriesList,
-		_storiesContents.events() | rpl::flatten_latest())
-	: nullptr)
+// , _stories((_layout != Layout::Child)
+// 	? std::make_unique<Stories::List>(
+// 		this,
+// 		st::dialogsStoriesList,
+// 		_storiesContents.events() | rpl::flatten_latest())
+// 	: nullptr)
 , _searchTimer([=] { search(); })
 , _peerSearch(&controller->session(), Api::PeerSearch::Type::WithSponsored)
 , _singleMessageSearch(&controller->session()) {
@@ -2386,9 +2386,7 @@ void Widget::stopWidthAnimation() {
 
 void Widget::updateStoriesVisibility() {
 	updateLockUnlockVisibility(anim::type::normal);
-	if (!_stories) {
-		return;
-	}
+	return;
 	const auto widthAnimation = !_widthAnimationCache.isNull();
 	const auto suggestionsAnimation = widthAnimation
 		&& (!_suggestions || !_hidingSuggestions.empty());
@@ -4021,12 +4019,12 @@ void Widget::updateControlsGeometry() {
 	const auto storiesHeight = 2 * st::dialogsStories.photoTop
 		+ st::dialogsStories.photo;
 	const auto added = (st::dialogsFilter.heightMin - storiesHeight) / 2;
-	if (_stories) {
-		_stories->setLayoutConstraints(
-			{ filterLeft + filterWidth, filterTop + added },
-			style::al_right,
-			{ 0, expandedStoriesTop, barw, st::dialogsStoriesFull.height });
-	}
+	// if (_stories) {
+	// 	_stories->setLayoutConstraints(
+	// 		{ filterLeft + filterWidth, filterTop + added },
+	// 		style::al_right,
+	// 		{ 0, expandedStoriesTop, barw, st::dialogsStoriesFull.height });
+	// }
 	if (_forumTopShadow) {
 		_forumTopShadow->setGeometry(
 			0,
