@@ -1041,7 +1041,19 @@ public:
 
 	void resetOnLastLogout();
 
+	// Stories Enabled functionality
+	[[nodiscard]] bool storiesEnabled() const {
+		return _storiesEnabled;
+	}
+
+	void setStoriesEnabled(bool value) {
+		_storiesEnabled = value;
+	}
+
 private:
+	// by default it's true
+	bool _storiesEnabled = true;
+
 	void resolveRecentEmoji() const;
 
 	template <typename Type>

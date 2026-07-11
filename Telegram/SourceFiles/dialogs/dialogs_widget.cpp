@@ -367,7 +367,7 @@ Widget::Widget(
 	object_ptr<Ui::IconButton>(this, st::dialogsLock))
 , _scroll(this)
 , _scrollToTop(_scroll, st::dialogsToUp)
-, _stories((_layout != Layout::Child)
+, _stories((_layout != Layout::Child && Core::App().settings().storiesEnabled())
 	? std::make_unique<Stories::List>(
 		this,
 		st::dialogsStoriesList,
