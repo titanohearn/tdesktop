@@ -85,7 +85,6 @@ void LogPosition(const WindowPosition &position, const QString &name) {
 			<< qint32(position.h)
 			<< qint32(position.moncrc)
 			<< qint32(position.maximized)
-			<< qint32()
 			<< qint32(position.scale);
 	}
 	return result;
@@ -960,13 +959,6 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 		stream >> speed;
 		if (stream.status() == QDataStream::Ok) {
 			audioPlaybackSpeed = speed;
-		}
-	}
-	if (!stream.atEnd()) {
-		auto step = qint32();
-		stream >> step;
-		if (stream.status() == QDataStream::Ok) {
-			_mediaGridZoomStep = step;
 		}
 	}
 
