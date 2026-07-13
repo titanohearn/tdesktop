@@ -90,6 +90,7 @@ void LogPosition(const WindowPosition &position, const QString &name) {
 	return result;
 }
 
+
 [[nodiscard]] QString Serialize(RecentEmojiDocument document) {
 	return u"%1-%2"_q.arg(document.id).arg(document.test ? 1 : 0);
 }
