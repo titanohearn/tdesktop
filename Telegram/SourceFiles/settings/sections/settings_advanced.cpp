@@ -1742,10 +1742,14 @@ void SetupSystemIntegrationContent(
         )
     )->toggleOn(rpl::single(Core::App().settings().storiesEnabled()));
 
-    storiesToggle->toggledValue(
-    ) | rpl::start_with_next([](bool enabled) {
+    storiesToggle->toggledChanges(
+    ) | rpl::start_with_next([=](bool enabled) {
         Core::App().settings().setStoriesEnabled(enabled);
         Core::App().saveSettingsDelayed();
+        controller->show(Box<Ui::InformBox>(
+            tr::lng_settings_need_restart(tr::now),
+            tr::lng_settings_restart_now(tr::now),
+            [=] { Core::Restart(); }));
     }, storiesToggle->lifetime());
 
     Ui::AddSkip(container);
