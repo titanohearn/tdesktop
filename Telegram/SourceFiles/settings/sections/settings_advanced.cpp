@@ -1732,6 +1732,27 @@ void SetupSystemIntegrationContent(
 		}
 	}
 
+	 Ui::AddSubsectionTitle(container, rpl::single(QString("Stories Section")));
+
+    const auto storiesToggle = container->add(
+        object_ptr<Ui::SettingsButton>(
+            container,
+            rpl::single(QString("Show stories section")),
+            st::settingsButtonNoIcon
+        )
+    )->toggleOn(rpl::single(Core::App().settings().storiesEnabled()));
+
+    storiesToggle->toggledValue(
+    ) | rpl::start_with_next([](bool enabled) {
+        Core::App().settings().setStoriesEnabled(enabled);
+        Core::App().saveSettingsDelayed();
+    }, storiesToggle->lifetime());
+
+    Ui::AddSkip(container);
+    Ui::AddDivider(container);
+    Ui::AddSkip(container);
+
+
 #ifdef Q_OS_MAC
 	const auto warnBeforeQuit = addCheckbox(
 		tr::lng_settings_mac_warn_before_quit(

@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/unixtime.h"
 #include "apiwrap.h"
 #include "core/application.h"
+#include "core/core_settings.h"
 #include "data/components/top_peers.h"
 #include "data/data_changes.h"
 #include "data/data_channel.h"
@@ -718,6 +719,9 @@ void Stories::savedStateChanged(not_null<Story*> story) {
 }
 
 void Stories::loadMore(StorySourcesList list) {
+	if (!Core::App().settings().storiesEnabled()) {
+		return;
+	}
 	const auto index = static_cast<int>(list);
 	if (_loadMoreRequestId[index] || _sourcesLoaded[index]) {
 		return;

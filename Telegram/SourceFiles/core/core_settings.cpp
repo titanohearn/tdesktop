@@ -90,6 +90,7 @@ void LogPosition(const WindowPosition &position, const QString &name) {
 	return result;
 }
 
+
 [[nodiscard]] QString Serialize(RecentEmojiDocument document) {
 	return u"%1-%2"_q.arg(document.id).arg(document.test ? 1 : 0);
 }
@@ -373,7 +374,8 @@ QByteArray Settings::serialize() const {
 			<< _customDeviceModel.current()
 			<< qint32(_playerRepeatMode.current())
 			<< qint32(_playerOrderMode.current())
-			<< qint32(_macWarnBeforeQuit ? 1 : 0);
+			<< qint32(_macWarnBeforeQuit ? 1 : 0)
+			<< qint32(_storiesEnabled ? 1 : 0);
 
 		stream
 			<< qint32(_accountsOrder.size());
@@ -534,6 +536,7 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 	qint64 groupCallPushToTalkDelay = _groupCallPushToTalkDelay;
 	qint32 legacyCallAudioBackend = 0;
 	qint32 disableCallsLegacy = 0;
+	qint32 storiesEnabled = _storiesEnabled ? 1 : 0;
 	QByteArray windowPosition;
 	std::vector<RecentEmojiPreload> recentEmojiPreload;
 	base::flat_map<QString, uint8> emojiVariants;
@@ -974,6 +977,11 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 	if (!stream.atEnd()) {
 		stream >> pullToNextChannel;
 	}
+
+	if (!stream.atEnd()) {
+		stream >> storiesEnabled;
+	}
+
 	if (stream.status() != QDataStream::Ok) {
 		LOG(("App Error: "
 			"Bad data for Core::Settings::constructFromSerialized()"));
@@ -993,6 +1001,7 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 	_soundNotify = (soundNotify == 1);
 	_desktopNotify = (desktopNotify == 1);
 	_flashBounceNotify = (flashBounceNotify == 1);
+	_storiesEnabled = (storiesEnabled == 1);
 	const auto uncheckedNotifyView = static_cast<NotifyView>(notifyView);
 	switch (uncheckedNotifyView) {
 	case NotifyView::ShowNothing:
@@ -1599,6 +1608,7 @@ void Settings::resetOnLastLogout() {
 	//_callAudioDuckingEnabled = true;
 
 	_disableCallsLegacy = false;
+	_storiesEnabled = true;
 
 	_groupCallPushToTalk = false;
 	_groupCallPushToTalkShortcut = QByteArray();
