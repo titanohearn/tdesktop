@@ -451,7 +451,7 @@ QByteArray Settings::serialize() const {
 		stream << qint32(SerializePlaybackSpeed(_audioPlaybackSpeed.current()));
 		stream << qint32(_mediaGridZoomStep);
 		stream << qint32(_pullToNextChannel.current() ? 1 : 0);
-		stream << qint32(_storiesEnabled ? 1 : 0);
+		stream << qint32(_storiesEnabled.current() ? 1 : 0);
 	}
 
 	Ensures(result.size() == size);
