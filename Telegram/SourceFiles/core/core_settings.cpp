@@ -273,7 +273,8 @@ QByteArray Settings::serialize() const {
 	}
 	size += sizeof(qint32) // _audioPlaybackSpeed
 		+ sizeof(qint32) // _mediaGridZoomStep
-		+ sizeof(qint32); // _pullToNextChannel
+		+ sizeof(qint32) // _pullToNextChannel
+		+ sizeof(qint32); // _storiesEnabled
 
 	auto result = QByteArray();
 	result.reserve(size);
@@ -374,8 +375,7 @@ QByteArray Settings::serialize() const {
 			<< _customDeviceModel.current()
 			<< qint32(_playerRepeatMode.current())
 			<< qint32(_playerOrderMode.current())
-			<< qint32(_macWarnBeforeQuit ? 1 : 0)
-			<< qint32(_storiesEnabled ? 1 : 0);
+			<< qint32(_macWarnBeforeQuit ? 1 : 0);
 
 		stream
 			<< qint32(_accountsOrder.size());
@@ -451,6 +451,7 @@ QByteArray Settings::serialize() const {
 		stream << qint32(SerializePlaybackSpeed(_audioPlaybackSpeed.current()));
 		stream << qint32(_mediaGridZoomStep);
 		stream << qint32(_pullToNextChannel.current() ? 1 : 0);
+		stream << qint32(_storiesEnabled ? 1 : 0);
 	}
 
 	Ensures(result.size() == size);
