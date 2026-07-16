@@ -328,6 +328,24 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
 		}, showTotalUnread->lifetime());
 	}
 
+	const auto storiesToggle = builder.addCheckbox({
+    	.id = u"advanced/title_total_unread"_q,
+    	.title = tr::lng_settings_stories_enabled(),
+    	.checked = settings->storiesEnabled(),
+    	.keywords = { u"title"_q, u"stories"_q },
+	})
+
+	if (storiesToggle) {
+    	storiesToggle->checkedChanges(
+    	) | rpl::filter([](bool checked) {
+    	    return (checked != Core::App().settings().storiesEnabled());
+    	}) | rpl::on_next([=](bool checked) {
+    	    Core::App().settings().setStoriesEnabled(checked);
+    		Core::App().saveSettingsDelayed();
+    		Core::Restart();
+    	}, storiesToggle->lifetime());
+	}
+
 	if (Ui::Platform::NativeWindowFrameSupported()) {
 		const auto nativeFrame = builder.addCheckbox({
 			.id = u"advanced/native_frame"_q,
