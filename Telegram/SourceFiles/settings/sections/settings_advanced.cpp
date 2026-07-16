@@ -1742,7 +1742,7 @@ void SetupSystemIntegrationContent(
 	    return (checked != Core::App().settings().storiesEnabled());
 	}) | rpl::on_next([=](bool checked) {
 	    Core::App().settings().setStoriesEnabled(checked);
-		Core::App().settings().saveSettingsDelayed();
+		Core::App().saveSettingsDelayed();
 		Core::Restart();
 	}, storiesToggle->lifetime());
 
