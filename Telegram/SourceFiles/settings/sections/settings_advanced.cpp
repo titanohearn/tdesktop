@@ -1732,29 +1732,19 @@ void SetupSystemIntegrationContent(
 		}
 	}
 
-	 Ui::AddSubsectionTitle(container, rpl::single(QString("Stories Section")));
+	const auto storiesToggle = addCheckbox(
+	    tr::lng_settings_stories_enabled(),
+		Core::App().settings().storiesEnabled()
+	);
 
-    const auto storiesToggle = container->add(
-        object_ptr<Ui::SettingsButton>(
-            container,
-            rpl::single(QString("Show stories section")),
-            st::settingsButtonNoIcon
-        )
-    )->toggleOn(rpl::single(Core::App().settings().storiesEnabled()));
-
-    storiesToggle->toggledChanges(
-    ) | rpl::start_with_next([=](bool enabled) {
-        Core::App().settings().setStoriesEnabled(enabled);
-        Core::App().saveSettingsDelayed();
-        controller->show(Box<Ui::InformBox>(
-            tr::lng_settings_need_restart(tr::now),
-            tr::lng_settings_restart_now(tr::now),
-            [=] { Core::Restart(); }));
-    }, storiesToggle->lifetime());
-
-    Ui::AddSkip(container);
-    Ui::AddDivider(container);
-    Ui::AddSkip(container);
+	storiesToggle->checkedChanges(
+	) | rpl::filter([](bool checked) {
+	    return (checked != Core::App().settings().storiesEnabled());
+	}) | rpl::on_next([=](bool checked) {
+	    Core::App().settings().setStoriesEnabled(checked);
+		Core::App().settings().saveSettingsDelayed();
+		Core::Restart();
+	}, storiesToggle->lifetime());
 
 
 #ifdef Q_OS_MAC
