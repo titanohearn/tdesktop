@@ -329,11 +329,11 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
 	}
 
 	const auto storiesToggle = builder.addCheckbox({
-    	.id = u"advanced/title_total_unread"_q,
+    	.id = u"advanced/title_stories_enabled"_q,
     	.title = tr::lng_settings_stories_enabled(),
     	.checked = settings->storiesEnabled(),
     	.keywords = { u"title"_q, u"stories"_q },
-	})
+	});
 
 	if (storiesToggle) {
     	storiesToggle->checkedChanges(
