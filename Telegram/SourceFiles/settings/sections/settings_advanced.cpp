@@ -328,6 +328,24 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
 		}, showTotalUnread->lifetime());
 	}
 
+	const auto storiesToggle = builder.addCheckbox({
+    	.id = u"advanced/title_stories_enabled"_q,
+    	.title = tr::lng_settings_stories_enabled(),
+    	.checked = settings->storiesEnabled(),
+    	.keywords = { u"title"_q, u"stories"_q },
+	});
+
+	if (storiesToggle) {
+    	storiesToggle->checkedChanges(
+    	) | rpl::filter([](bool checked) {
+    	    return (checked != Core::App().settings().storiesEnabled());
+    	}) | rpl::on_next([=](bool checked) {
+    	    Core::App().settings().setStoriesEnabled(checked);
+    		Core::App().saveSettingsDelayed();
+    		Core::Restart();
+    	}, storiesToggle->lifetime());
+	}
+
 	if (Ui::Platform::NativeWindowFrameSupported()) {
 		const auto nativeFrame = builder.addCheckbox({
 			.id = u"advanced/native_frame"_q,
@@ -1731,6 +1749,21 @@ void SetupSystemIntegrationContent(
 			}, taskbar->lifetime());
 		}
 	}
+
+	const auto storiesToggle = addCheckbox(
+	    tr::lng_settings_stories_enabled(),
+		Core::App().settings().storiesEnabled()
+	);
+
+	storiesToggle->checkedChanges(
+	) | rpl::filter([](bool checked) {
+	    return (checked != Core::App().settings().storiesEnabled());
+	}) | rpl::on_next([=](bool checked) {
+	    Core::App().settings().setStoriesEnabled(checked);
+		Core::App().saveSettingsDelayed();
+		Core::Restart();
+	}, storiesToggle->lifetime());
+
 
 #ifdef Q_OS_MAC
 	const auto warnBeforeQuit = addCheckbox(
