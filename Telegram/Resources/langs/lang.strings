@@ -458,6 +458,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_signup_desc" = "Please enter your name and\nupload a photo.";
 
 "lng_signup_firstname" = "First name";
+
 "lng_signup_lastname" = "Last name";
 
 "lng_dlg_filter" = "Search";
