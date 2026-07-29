@@ -90,6 +90,7 @@ void LogPosition(const WindowPosition &position, const QString &name) {
 	return result;
 }
 
+
 [[nodiscard]] QString Serialize(RecentEmojiDocument document) {
 	return u"%1-%2"_q.arg(document.id).arg(document.test ? 1 : 0);
 }
@@ -346,6 +347,7 @@ QByteArray Settings::serialize() const {
 		+ sizeof(qint32) // _mediaGridZoomStep
 		+ sizeof(qint32) // _pullToNextChannel
 		+ sizeof(qint32); // _chatFiltersTabsMode
+		+ sizeof(qint32); // _storiesEnabled
 
 	auto result = QByteArray();
 	result.reserve(size);
@@ -523,6 +525,7 @@ QByteArray Settings::serialize() const {
 		stream << qint32(_mediaGridZoomStep);
 		stream << qint32(_pullToNextChannel.current() ? 1 : 0);
 		stream << qint32(_chatFiltersTabsMode.current());
+		stream << qint32(_storiesEnabled ? 1 : 0);
 	}
 
 	Ensures(result.size() == size);
@@ -608,6 +611,7 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 	qint64 groupCallPushToTalkDelay = _groupCallPushToTalkDelay;
 	qint32 legacyCallAudioBackend = 0;
 	qint32 disableCallsLegacy = 0;
+	qint32 storiesEnabled = _storiesEnabled ? 1 : 0;
 	QByteArray windowPosition;
 	std::vector<RecentEmojiPreload> recentEmojiPreload;
 	base::flat_map<QString, uint8> emojiVariants;
@@ -1052,6 +1056,11 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 	if (!stream.atEnd()) {
 		stream >> chatFiltersTabsMode;
 	}
+
+	if (!stream.atEnd()) {
+		stream >> storiesEnabled;
+	}
+
 	if (stream.status() != QDataStream::Ok) {
 		LOG(("App Error: "
 			"Bad data for Core::Settings::constructFromSerialized()"));
@@ -1071,6 +1080,7 @@ void Settings::addFromSerialized(const QByteArray &serialized) {
 	_soundNotify = (soundNotify == 1);
 	_desktopNotify = (desktopNotify == 1);
 	_flashBounceNotify = (flashBounceNotify == 1);
+	_storiesEnabled = (storiesEnabled == 1);
 	const auto uncheckedNotifyView = static_cast<NotifyView>(notifyView);
 	switch (uncheckedNotifyView) {
 	case NotifyView::ShowNothing:
@@ -1690,6 +1700,7 @@ void Settings::resetOnLastLogout() {
 	//_callAudioDuckingEnabled = true;
 
 	_disableCallsLegacy = false;
+	_storiesEnabled = true;
 
 	_groupCallPushToTalk = false;
 	_groupCallPushToTalkShortcut = QByteArray();
