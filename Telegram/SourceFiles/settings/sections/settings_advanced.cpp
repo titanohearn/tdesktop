@@ -342,17 +342,17 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
     	) | rpl::filter([](bool checked) {
     	    return (checked != Core::App().settings().storiesEnabled());
     	}) | rpl::on_next([=](bool checked) {
-            const auto confirmed = crl::guard(storiesToggle, [=], {
+            const auto confirmed = crl::guard(storiesToggle, [=] {
                	Core::App().settings().setStoriesEnabled(checked);
                 Local::writeSettings();
            		Core::Restart();
-            })
+            });
 
             controller->show(Ui::MakeConfirmBox({
                 .text = tr::lng_settings_need_restart(),
     			.confirmed = confirmed,
     			.confirmText = tr::lng_settings_restart_now(),
-            }))
+            }));
     	}, storiesToggle->lifetime());
 	}
 
