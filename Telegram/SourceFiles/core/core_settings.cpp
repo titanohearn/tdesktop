@@ -346,7 +346,7 @@ QByteArray Settings::serialize() const {
 	size += sizeof(qint32) // _audioPlaybackSpeed
 		+ sizeof(qint32) // _mediaGridZoomStep
 		+ sizeof(qint32) // _pullToNextChannel
-		+ sizeof(qint32); // _chatFiltersTabsMode
+		+ sizeof(qint32) // _chatFiltersTabsMode
 		+ sizeof(qint32); // _storiesEnabled
 
 	auto result = QByteArray();
