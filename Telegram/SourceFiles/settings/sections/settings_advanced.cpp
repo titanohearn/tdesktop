@@ -259,6 +259,7 @@ void BuildAutoDownloadSection(SectionBuilder &builder) {
 
 void BuildWindowTitleSection(SectionBuilder &builder) {
 	const auto settings = &Core::App().settings();
+	const auto controller = builder.controller();
 
 	builder.addDivider();
 	builder.addSkip();
@@ -335,14 +336,23 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
     	.keywords = { u"title"_q, u"stories"_q },
 	});
 
+	// Adding confirmation popup about restarting the app
 	if (storiesToggle) {
     	storiesToggle->checkedChanges(
     	) | rpl::filter([](bool checked) {
     	    return (checked != Core::App().settings().storiesEnabled());
     	}) | rpl::on_next([=](bool checked) {
-    	    Core::App().settings().setStoriesEnabled(checked);
-    		Core::App().saveSettingsDelayed();
-    		Core::Restart();
+            const auto confirmed = crl::guard(storiesToggle, [=], {
+               	Core::App().settings().setStoriesEnabled(checked);
+                Local::writeSettings();
+           		Core::Restart();
+            })
+
+            controller->show(Ui::MakeConfirmBox({
+                .text = tr::lng_settings_need_restart(),
+    			.confirmed = confirmed,
+    			.confirmText = tr::lng_settings_restart_now(),
+            }))
     	}, storiesToggle->lifetime());
 	}
 
@@ -1749,21 +1759,6 @@ void SetupSystemIntegrationContent(
 			}, taskbar->lifetime());
 		}
 	}
-
-	const auto storiesToggle = addCheckbox(
-	    tr::lng_settings_stories_enabled(),
-		Core::App().settings().storiesEnabled()
-	);
-
-	storiesToggle->checkedChanges(
-	) | rpl::filter([](bool checked) {
-	    return (checked != Core::App().settings().storiesEnabled());
-	}) | rpl::on_next([=](bool checked) {
-	    Core::App().settings().setStoriesEnabled(checked);
-		Core::App().saveSettingsDelayed();
-		Core::Restart();
-	}, storiesToggle->lifetime());
-
 
 #ifdef Q_OS_MAC
 	const auto warnBeforeQuit = addCheckbox(
