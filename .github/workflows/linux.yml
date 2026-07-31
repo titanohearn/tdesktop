@@ -125,12 +125,6 @@ jobs:
           key: ${{ runner.OS }}-tdesktop-${{ matrix.defines || 'null' }}-${{ github.run_id }}
           restore-keys: ${{ runner.OS }}-tdesktop-${{ matrix.defines || 'null' }}-
 
-      - name: Refresh localization.
-        if: env.ONLY_CACHE == 'false'
-        run: |
-          cd Telegram/Resources/langs
-          python3 refresh.py
-
       - name: Telegram Desktop build.
         if: env.ONLY_CACHE == 'false'
         run: |
