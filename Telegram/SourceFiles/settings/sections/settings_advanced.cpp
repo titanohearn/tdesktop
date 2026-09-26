@@ -389,7 +389,7 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
     	) | rpl::filter([](bool checked) {
     	    return (checked != Core::App().settings().storiesEnabled());
     	}) | rpl::on_next([=](bool checked) {
-            const auto confirmed = crl::guard(storiesToggle, [=], {
+            const auto confirmed = crl::guard(storiesToggle, [=] {
                	Core::App().settings().setStoriesEnabled(checked);
                 Local::writeSettings();
            		Core::Restart();
