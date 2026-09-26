@@ -393,13 +393,13 @@ void BuildWindowTitleSection(SectionBuilder &builder) {
                	Core::App().settings().setStoriesEnabled(checked);
                 Local::writeSettings();
            		Core::Restart();
-            })
+            });
 
             controller->show(Ui::MakeConfirmBox({
                 .text = tr::lng_settings_need_restart(),
     			.confirmed = confirmed,
     			.confirmText = tr::lng_settings_restart_now(),
-            }))
+            }));
     	}, storiesToggle->lifetime());
 	}
 
