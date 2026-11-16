@@ -1,12 +1,15 @@
 ---
 name: process-inbox
-description: Process the local ignored ai-tdesktop inbox into durable, independently testable Telegram Desktop task records while task execution worktrees remain active. Use when the user invokes $process-inbox or /process-inbox, asks to triage or process ai-tdesktop/inbox/inbox.md, or wants inbox notes and pasted images routed into new or existing AI projects and dated tasks without implementing them.
+description: Process the local ignored ai-tdesktop inbox into durable, independently testable Telegram Desktop task records while task execution worktrees remain active. Use when the user invokes $process-inbox or /process-inbox, asks to triage or process ai-tdesktop/inbox/inbox.md, or wants inbox notes, pasted images, or supplied videos routed into new or existing AI projects and dated tasks without implementing them.
 ---
 
 # Process Inbox
 
 When running in Grok Build, read `.grok/ai-workflow-adapter.md` completely
 before any other host-specific delegation rule and apply its substitutions.
+
+Before assigning workers, read [phase effort](../../shared/phase-effort.md)
+and apply its scope-based effort selection and host mappings.
 
 Turn the human-written ignored inbox into tracked planning artifacts. Route and
 plan only: do not edit Telegram source, build, test, claim, or implement tasks.
@@ -49,13 +52,21 @@ inbox. Never force-push shared AI history.
 
 ## Route and plan
 
+Follow the shared [project-context policy](../../shared/project-context.md)
+for discovery, selective expansion, and compact project/index artifacts.
+
 Read these before planning:
 
 - source checkout `AGENTS.md`;
 - `ai_main/AGENTS.md`;
-- existing `<inbox_worktree>/projects/*/project.md`, including
-  `projects/archive/`, and relevant task states from `<inbox_worktree>`;
 - the transaction's `inbox.md` and every file it references.
+
+For each request, start with explicit task/project lineage and relevant task
+metadata from `<inbox_worktree>`. Use project names/titles and targeted search
+matches across live and archived projects to identify candidates, then read
+their small overviews. Inspect relevant task specifications, input sections,
+index entries, or detailed references when needed to resolve a dependency or
+routing ambiguity. Do not load every project's overview or task history.
 
 Some retained task directories have `superseded.yaml` instead of `state.yaml`.
 They are durable aliases created by queue consolidation, not missing or reusable
@@ -74,11 +85,22 @@ write a proposed routing file inside the ignored transaction, but only the
 orchestrator writes tracked AI state.
 
 Treat natural-language hints as evidence, not required syntax. Segment the
-inbox into requests, then decide for each request whether to:
+inbox into requests, then put every task into a project: an existing one, or a
+new one when no existing project covers the area. There are no standalone
+tasks; publication refuses a new task without a live project.
 
-- create a standalone task with no project;
-- add one or more tasks to an existing project;
-- create a new project when durable shared context is useful.
+A project is a bundle of tasks and the branch they are performed on, not a
+knowledge base. Its tasks run on a branch named by its slug, in tdesktop and
+in each top-level submodule it changes. The workflow switches a checkout onto
+that branch by itself, and every approval rebases the task's commits onto the
+shared branch and pushes them, so the owner integrates finished work one
+project branch at a time. Name a new project for the area its tasks touch, or
+for the kind of work when several requests share one, in one to three words
+such as `uploads`, `window-layout` or `code-health`, because the slug becomes
+a branch name. Existing projects keep their slugs. Plan a long or experimental
+project, such as a rewrite, as a task graph that can run for days: tasks that
+migrate one part each, differential tests against the old implementation, and
+`improve` tasks; the project planner extends it as results come in.
 
 Never create a task whose work is to move an existing source commit between
 branches: no backport, forward-port, cherry-pick, rebase, merge, branch sync,
@@ -97,23 +119,22 @@ is affirmatively established. A task belongs to the existing project when it
 builds on project code or behavior, requires source changes shipped by project
 tasks, assumes the project's branch or accumulated context, or must be ordered
 after project work. Touching shared infrastructure or an additional
-non-project consumer does not by itself make the task standalone: projects
+non-project consumer does not by itself move the task elsewhere: projects
 record feature and code lineage, not exclusive ownership of every touched
 file.
 
-Route a derived request to another project or to `project: null` only when it
-remains coherent, implementable, and independently testable in a checkout
-where the originating project's changes are absent or reverted. Record that
-concrete independence evidence in the receipt; "cross-cutting", "cleanup", or
-"broader than the source task" is not enough. For a request without a source
-task, prefer an existing project whenever its code, plan, or prior tasks supply
-essential context, and use a standalone task only when no project does.
+Route a derived request to another project only when it remains coherent,
+implementable, and independently testable in a checkout where the originating
+project's changes are absent or reverted. Record that concrete independence
+evidence in the receipt; "cross-cutting", "cleanup", or "broader than the
+source task" is not enough. For a request without a source task, choose the
+project of the area it touches: an existing project whose code, plan, prior
+tasks or slug cover that area, otherwise a new one.
 
-Do not create generic holding projects such as `fixes`. A release batch of
-unrelated regressions normally becomes standalone tasks or tasks in existing
-domain projects. Group requests into one task only when they form one cohesive,
-independently testable behavior that can be implemented, reviewed, and tested
-as one normal pass.
+A release batch of unrelated regressions goes to the projects of the areas each
+fix touches, not to one catch-all such as `fixes` or `misc`. Group requests
+into one task only when they form one cohesive, independently testable
+behavior that can be implemented, reviewed, and tested as one normal pass.
 
 Split at product boundaries, not arbitrary file or line-count boundaries. A
 request needs multiple tasks when two or more parts have their own useful
@@ -204,6 +225,59 @@ Omit `Inputs` when none are used. For visual work, include the design basis and
 the exact visual/layout evidence expected. Copy every pertinent supplied file
 into `input/`; never reference the ignored inbox or its backup from a task.
 
+### Supplied videos
+
+A supplied video, usually an animation to reproduce, is analysed once here, by
+the planner, because its timings decide the task split. The video itself is
+never tracked: it stays in the transaction, which `finalize` keeps in the
+ignored local `inbox/backup/`. Performers, possibly on another machine, work
+only from the measurements and frames this step commits. Use the
+bundled helper; it needs `ffmpeg`/`ffprobe`, and `sheet` also needs Pillow:
+
+```bash
+V=<transaction>/<file>.mp4
+python3 .agents/skills/process-inbox/scripts/video.py probe "$V"
+python3 .agents/skills/process-inbox/scripts/video.py extract "$V" --out <scratch>/all
+python3 .agents/skills/process-inbox/scripts/video.py sheet "$V" --step 20 --scale 0.25 --out <scratch>/overview.png
+python3 .agents/skills/process-inbox/scripts/video.py extract "$V" --frames 0,119-134 \
+  --crop 240x240+330+300 --label corner --out <task>/input/frames
+python3 .agents/skills/process-inbox/scripts/video.py sheet "$V" --frames 118-141 \
+  --crop 240x240+330+300 --out <task>/input/frames/sheet-transition-corner-118-141.png
+```
+
+- **Frame numbers and times.** Frames are numbered by decoded index from 0,
+  and the helper names them `frame-NNN-TTTTms[-label].png` from each frame's
+  own timestamp. Phone and screen recordings often have a variable frame rate
+  (`probe` reports `constant_frame_rate`), so never compute a time as
+  index / fps. Cite frames as `fNNN` with their time in the task.
+- **Full extraction.** Write it to scratch space outside the inbox, not into
+  the transaction or `input/`, because a long recording decodes to gigabytes.
+  Use it to find the phases and to measure, then discard it.
+- **Measure, then write the design basis.** In each task's `task.md`, record
+  the probe facts (size, nominal fps, frame count, whether the rate is
+  constant) and the phase boundaries by frame and time. Record every figure a
+  performer must reproduce: speeds, durations, sizes relative to a stable
+  on-screen feature, easing and colour at sampled frames. Say which aspects are
+  the design and which are reference only (the recording's own colours, fonts
+  or geometry), and record every owner override the measurement contradicts.
+- **Commit complete frames per phase.** The committed frames are the whole
+  reference, so a performer must be able to re-measure anything from them.
+  For every animated phase a task owns, commit every frame of that phase as
+  tight crops of the animated region in labelled `sheet`s (enlarged with
+  `--scale` when the detail is small), plus the key poses as single frames
+  and a few full frames for context. Keep crops tight; a sheet of one
+  transition costs far less than the recording. Link each from `Inputs` with
+  its frame and time, and say in the design basis that the reference video is
+  not in the repository. Acceptance compares the app's captures with these
+  named frames.
+- **Video stays local.** Never copy a supplied video into `input/` or link to
+  it from a task. Map it in the receipt as kept in the local backup only, with
+  its `probe` facts and digest, so the original can be found again. A later
+  question the frames cannot answer goes to the owner, not to the video.
+- **Revisions.** When a video revises a reference an existing task already
+  holds, compare the `probe` output and the frames with the committed ones,
+  and record in the receipt whether it replaces the reference, and why.
+
 Keep acceptance criteria to what actually proves the requested behavior. Never
 write a test-data integrity criterion: the live `TelegramForcePortable` folder
 is a disposable copy, so a task must not ask a performer to hash, back up,
@@ -217,6 +291,22 @@ marker, and otherwise prepares a fresh copy — and its `test-run` command alrea
 launches with `-testagent -noupdate`, so no task needs to require either flag.
 Every such criterion costs a performer real time and proves nothing about the
 product.
+
+Keep test fixtures, one-off tooling and harness work proportionate: their
+acceptance is that the tool runs and produces the needed result. Do not turn
+words like "repeatable" or "reliable" into extra criteria such as second runs,
+byte-identical reruns, read-back verification or invite links unless the
+request names them. A one-time setup the owner can do by hand in minutes is not
+a task at all; say so in the receipt instead.
+
+Plan a harness or testing-infrastructure task for its consumers. Say in
+`task.md` that it is harness work, and name the tasks, tests or agents that
+will use it. Write its acceptance as the few results those consumers need,
+each shown by the harness's own self-test or one consumer run. Leave the
+mechanism, the framework internals it relies on and the edge cases no consumer
+reaches to the performer's plan. A harness task that specifies framework
+internals or exhaustive edge cases is over-specified: the performer builds,
+reviews and tests every line of it.
 
 Never write an acceptance criterion that can only be satisfied by adding
 debug machinery to production code — `#ifdef _DEBUG` blocks, debug-only
@@ -233,7 +323,7 @@ Create `state.yaml` in this exact field order:
 status: todo
 type: implement
 created: YYYY-MM-DD
-project: null
+project: <project-slug>
 depends_on: []
 claimed_by: null
 claimed_at: null
@@ -249,7 +339,7 @@ Do not write a `model` field. It records which model finished the task, so only
 boundary; a task
 carrying one before it is claimed is malformed.
 
-Use a project slug instead of `null` when routed to a project. Use a YAML list
+`project` is always a live project's slug. Use a YAML list
 of task identifiers for dependencies. Dependencies record code lineage as well
 as readiness: keep an approved source task in `depends_on` when the new task's
 implementation assumes its shipped changes. State that prerequisite in
@@ -261,16 +351,33 @@ The checkout tag belongs in the receipt only.
 
 Every new task uses `type: implement`. Do not predict a cheap or expensive
 execution profile while routing: the performer selects review specialists and
-evidence instruments after inspecting the real code and risks. Keep acceptance
+evidence instruments after inspecting the real code and risks. Requests
+written by the code-health skill carry a `## Code health` section; keep it
+verbatim in the task, because its class selects the performer's lane, and
+never add one to any other request. A Q0, Q1 or Q2 request is already
+planned and sized: route it as one task of the `code-health` project with no
+dependencies, copy its title, paragraph and sections verbatim, and never
+merge or split it. Q3–Q5 requests are planned like any other. Keep acceptance
 criteria outcome-focused. Name a required build, probe, app run, interaction,
 or screenshot only when that instrument is itself part of the requested result
 or no other instrument could decide the claim from the facts already known to
 the planner.
 
-For a new project, create `projects/<slug>/project.md` with a concise durable
-scope and `projects/<slug>/tasks.md` with task links. For an existing project,
-append every newly assigned task link, including inherited follow-ups. Project
-indexes do not store live status.
+An exploratory request, one that asks to make something faster or smoother
+with no exact end result, gets an `## Objective` section in place of
+acceptance for that objective: the metric and which direction is better, the
+measurement protocol with its noise threshold, the guardrails, and optionally
+a target. The performer runs it in the improve lane
+(`.agents/skills/perform-task/references/improve-lane.md`); missing the target
+never blocks it. Hard requirements stay acceptance criteria.
+
+For a new project, create `projects/<slug>/project.md` with a `# ` title and
+one paragraph naming the area or kind of work it bundles, and
+`projects/<slug>/tasks.md` with task links. Nothing else belongs in a new
+`project.md`: each task carries its own context. For an existing project,
+append every newly assigned task link, including inherited follow-ups, with
+only concise optional grouping. Put routing and decision prose in task
+specifications or the receipt, following the shared policy.
 
 Create one tracked Markdown receipt under `receipts/YYYY/MM/DD/`. Include:
 
@@ -290,9 +397,11 @@ resolve to live state, create nothing and reuse that receipt for finalization.
 Before committing, verify:
 
 - every request and supplied file is accounted for;
-- every new task has `task.md`, valid `state.yaml`, and a falsifiable
-  acceptance result;
+- every new task has `task.md`, valid `state.yaml`, a falsifiable
+  acceptance result, and a live project, created or restored in this
+  transaction when it is new or archived;
 - every task link, dependency, and copied input exists;
+- no supplied video and no full frame extraction is tracked;
 - no task or project reference points into `projects/archive/`;
 - no raw inbox path, `.local/`, browser profile, portable account, credential,
   complete run directory, or complete build log is tracked;
