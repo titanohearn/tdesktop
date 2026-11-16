@@ -1293,6 +1293,7 @@ void Settings::addFromSerialized(
 				scheme = parsed;
 			}
 		}
+
 		if (scheme != local) {
 			auto converted = std::vector<int>();
 			for (const auto id : list) {
